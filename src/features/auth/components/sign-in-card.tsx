@@ -19,31 +19,29 @@ import {
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa";
 import AuthSkeleton from "@/components/auth-skeleton";
-
-const formSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1, { message: "Password is required" }),
-});
+import { loginSchema } from "../schemas";
+import { useLogin } from "../api/use-login";
 
 export function SignInCard() {
-const [isMounted, setIsMounted] = useState<boolean>(false);
+  const { mutate: login, isPending } = useLogin();
 
-useEffect(() => {
-  setIsMounted(true);
-}, []);
+  const [isMounted, setIsMounted] = useState<boolean>(false);
 
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
       password: "",
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
+  const onSubmit = (values: z.infer<typeof loginSchema>) => {
     console.log(values);
+    login({ json: values });
     form.reset();
   };
 
@@ -69,6 +67,7 @@ useEffect(() => {
                 <FormItem>
                   <FormControl>
                     <Input
+                      disabled={isPending}
                       type="email"
                       placeholder="Enter your Email"
                       {...field}
@@ -86,6 +85,7 @@ useEffect(() => {
                 <FormItem>
                   <FormControl>
                     <Input
+                      disabled={isPending}
                       type="password"
                       placeholder="Enter your Password"
                       {...field}
@@ -95,8 +95,13 @@ useEffect(() => {
                 </FormItem>
               )}
             />
-            <Button type="submit" size="lg" className="w-full">
-              Login
+            <Button
+              type="submit"
+              size="lg"
+              className="w-full"
+              disabled={isPending}
+            >
+              {isPending ? "Logging in..." : "Login"}
             </Button>
           </form>
         </Form>
@@ -115,6 +120,7 @@ useEffect(() => {
           Login with Google
         </Button>
         <Button
+
           variant={"secondary"}
           size={"lg"}
           className="w-full"
